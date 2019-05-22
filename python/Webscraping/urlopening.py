@@ -17,28 +17,34 @@ def getValidationDate(urls):
         website_url = urllib.request.urlopen("https://www.ssllabs.com/ssltest/analyze.html?d=" + url).read()
         soup = bs.BeautifulSoup(website_url,"lxml")
         table_list = soup.findAll('table')      #finde alle Tabellen und speicher sie in eine Liste
-        table0 = table_list[0]                  #table0 ist fuer das Datum wichtig
-        table1 = table_list[1]                  #table1 ist fuer Chain issues wichtig
+        try:
+            table0 = table_list[0]                  #table0 ist fuer das Datum wichtig
+            table1 = table_list[1]                  #table1 ist fuer Chain issues wichtig
 
-        table_rows0 = table0.find_all("tr")     #fuer erste Tabelle
-        table_rows1 = table1.find_all("tr")     #fuer zweite Tabelle (weil erst die zweite Tabelle "chain issues" enthaelt
+            table_rows0 = table0.find_all("tr")     #fuer erste Tabelle
+            table_rows1 = table1.find_all("tr")     #fuer zweite Tabelle (weil erst die zweite Tabelle "chain issues" enthaelt)
 
-        for tr in table_rows0:
-            td = tr.find_all("td")
-            row = [i.text for i in td]
-            list_val.append(row)
+            for tr in table_rows0:
+                td = tr.find_all("td")
+                row = [i.text for i in td]
+                list_val.append(row)
+                
+            for tr in table_rows1:
+                td = tr.find_all("td")
+                row = [i.text for i in td]
+                list_check.append(row)
+                
+
+            print("{}: {:>8} {}".format(url, str(list_val[6]), str(list_check[2]))) #list_val[6] ist der Validate Eintrag
+            f = open("log.txt", "a+")
+            f.write("{:<35s} \t\t {:<50s} {}\n".format(url, str(list_val[6]), str(list_check[2]))) #list_check[2] ist der "chain issues" Eintrag
+            f.close()
+        except Exception as e:
+            print("{:<35s} \t\t Entweder hat JS den Inhalt noch nicht geladen, oder es besteht ein anderer Fehler: '{}'\n".format(url, str(e)))
+            f = open("log.txt", "a+")
+            f.write("{:<35s} \t\t Entweder hat JS den Inhalt noch nicht geladen, oder es besteht ein anderer Fehler: '{}'\n".format(url, str(e))) #err message eintragen
+            f.close()
             
-        for tr in table_rows1:
-            td = tr.find_all("td")
-            row = [i.text for i in td]
-            list_check.append(row)
-            
-
-        print("{}: {:>8} {}".format(url, str(list_val[6]), str(list_check[2]))) #list_val[6] ist der Validate Eintrag
-        f = open("log.txt", "a+")
-        f.write("{:<35s} \t\t {:<50s} {}\n".format(url, str(list_val[6]), str(list_check[2]))) #list_check[2] ist der chain issues Eintrag
-        f.close()
-        
-justOpenLinks(testlinks)                #hier Liste mit Links in die Funktionen einfuegen
+justOpenLinks(testlinks)
 getValidationDate(testlinks)
 
